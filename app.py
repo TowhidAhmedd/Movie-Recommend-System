@@ -1,39 +1,40 @@
-import pickle
 import streamlit as st
-import requests
+import pickle 
 import pandas as pd
 
-def fetch_poster(movie_id):
-    url = f"https://api.themoviedb.org/3/movie/{movie_id}?api_key=8265bd1679663a7ea12ac168da84d2e8&language=en-US"
-    data = requests.get(url).json()
-    poster_path = data.get('poster_path', '')
-    full_path = "https://image.tmdb.org/t/p/w500/" + poster_path if poster_path else ""
-    return full_path
+
+
 
 def recommend(movie):
-    index = movies[movies['title'] == movie].index[0]
-    distances = sorted(list(enumerate(similarity[index])), reverse=True, key=lambda x: x[1])
-    recommended_movie_names = []
-    recommended_movie_posters = []
-    for i in distances[1:6]:
-        movie_id = movies.iloc[i[0]].movie_id
-        recommended_movie_posters.append(fetch_poster(movie_id))
-        recommended_movie_names.append(movies.iloc[i[0]].title)
-    return recommended_movie_names, recommended_movie_posters
+    movie_index = movies[movies['title']==movie].index[0]
+    distances = similarity[movie_index]
+    movies_list = sorted(list(enumerate(distances)), reverse=True, key=lambda x:x[1])[1:6]
 
-st.title("🎬 Movie Recommender System")
+    recommend_movies=[]
+    for i in movies_list:
+        recommend_movies.append(movies.iloc[i[0]].title)
+    return recommend_movies
 
-# ✅ Pickle files (must be in same folder as app.py)
-movies = pickle.load(open("movies.pkl","rb"))
-similarity = pickle.load(open("similarity.pkl","rb"))
 
-# If movies.pkl is dict, convert to DataFrame
-if isinstance(movies, dict):
-    movies = pd.DataFrame(movies)
 
-movie_list = movies['title'].values
-selected_movie = st.selectbox("Type or select a movie from the dropdown", movie_list)
+movies_dict = pickle.load(open('movie_dict.pkl','rb'))
+movies = pd.DataFrame(movies_dict)
+similarity = pickle.load(open('similarity.pkl','rb'))
 
-if st.button("Show Recommendation"):
-    recommended_movie_names, recommended_movie_posters = recommend(selected_movie)
-    col1, col2, col3, col
+st.title('Movie Recommend System')
+
+selected_movie_name = st.selectbox('How would you like to be contacted?',
+            movies['title'].values)
+
+if st.button('Recommend'):
+    recommendations = recommend(selected_movie_name)
+    for i in recommendations:
+        st.write(i)
+
+
+
+
+
+
+
+
